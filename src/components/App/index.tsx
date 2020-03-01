@@ -8,10 +8,18 @@ import { generateCells } from "../../utils/";
 const App: React.FC = () => {
     const [cells, setCells] = useState(generateCells());
 
+    // console.log(cells, "cells");
+
     const renderCells = (): React.ReactNode => {
         return cells.map((row, rowIndex) =>
             row.map((cell, colIndex) => (
-                <Button key={`${rowIndex}-${colIndex}`} />
+                <Button
+                    key={`${rowIndex}-${colIndex}`}
+                    state={cell.state}
+                    value={cell.value}
+                    row={rowIndex}
+                    col={colIndex}
+                />
             ))
         );
     };
@@ -22,7 +30,7 @@ const App: React.FC = () => {
                 <NumberDisplay value={0} />
                 <div className="Face">
                     <span role="img" aria-label="face">
-                        👽
+                        🧐
                     </span>
                 </div>
                 <NumberDisplay value={23} />

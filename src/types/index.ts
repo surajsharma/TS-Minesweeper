@@ -1,5 +1,5 @@
 export enum CellValue {
-    bomb,
+    none,
     one,
     two,
     three,
@@ -8,7 +8,7 @@ export enum CellValue {
     six,
     seven,
     eight,
-    none
+    bomb
 }
 
 
