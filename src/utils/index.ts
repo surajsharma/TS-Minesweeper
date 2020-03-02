@@ -1,3 +1,4 @@
+import React from 'react';
 import { MAX_ROWS, MAX_COLS, MAX_BOMBS } from "../constants";
 import { CellValue, CellState, Cell } from "../types"
 export const generateCells = () => {
@@ -10,7 +11,7 @@ export const generateCells = () => {
         for (let col = 0; col < MAX_COLS; col++) {
             cells[row].push({
                 value: CellValue.none,
-                state: CellState.visible
+                state: CellState.open
             })
         }
     }
@@ -97,7 +98,9 @@ export const generateCells = () => {
 
         }
     }
-
-
     return cells;
+}
+
+export const handleKeyDown = (e: React.MouseEvent) => {
+
 }
