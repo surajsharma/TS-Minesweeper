@@ -5,6 +5,7 @@ import NumberDisplay from "../NumberDisplay";
 import Button from "../Button";
 import { generateCells, openMultipleCells } from "../../utils/";
 import { Cell, Face, CellState, CellValue } from "../../types";
+import { MAX_ROWS, MAX_COLS } from "../../constants";
 
 const App: React.FC = () => {
     const [cells, setCells] = useState<Cell[][]>(generateCells());
@@ -13,6 +14,7 @@ const App: React.FC = () => {
     const [live, setLive] = useState<boolean>();
     const [bombcounter, setBombCounter] = useState<number>(10);
     const [hasLost, setHasLost] = useState<boolean>(false);
+    const [hasWon, setHasWon] = useState<boolean>(false);
 
     useEffect(() => {
         const handleMouseDown = (): void => {
@@ -50,6 +52,13 @@ const App: React.FC = () => {
         }
     }, [hasLost]);
 
+    useEffect(() => {
+        if (hasWon) {
+            setFace(Face.won);
+            setLive(false);
+        }
+    }, [hasWon]);
+
     const showAllBombs = (): Cell[][] => {
         const currentCells = cells.slice();
         return currentCells.map((row) =>
@@ -66,14 +75,25 @@ const App: React.FC = () => {
         rowParam: number,
         colParam: number
     ) => (): void => {
+        let newCells = cells.slice();
+
         if (!live) {
             // TODO : ensure bomb does not get clicked on start
+            if (newCells[rowParam][colParam].value === CellValue.bomb) {
+                let isABomb = true;
+                while (isABomb) {
+                    newCells = generateCells();
+                    if (newCells[rowParam][colParam].value !== CellValue.bomb) {
+                        isABomb = false;
+                        break;
+                    }
+                }
+            }
 
             setLive(true);
         }
 
-        const currentCell = cells[rowParam][colParam];
-        let newCells = cells.slice();
+        const currentCell = newCells[rowParam][colParam];
 
         if (
             [CellState.flagged, CellState.visible].includes(currentCell.state)
@@ -81,26 +101,55 @@ const App: React.FC = () => {
             return;
         }
         if (currentCell.value === CellValue.bomb) {
-            console.log("💣");
             newCells = showAllBombs();
+            newCells[rowParam][colParam].red = true;
             setCells(newCells);
             setHasLost(true);
+            return;
         } else if (currentCell.value === CellValue.none) {
             newCells = openMultipleCells(newCells, rowParam, colParam);
-            setCells(newCells);
         } else {
             newCells[rowParam][colParam].state = CellState.visible;
-            setCells(newCells);
         }
+
+        //won
+        let safeOpenCells = false;
+        for (let row = 0; row < MAX_ROWS; row++) {
+            for (let col = 0; col < MAX_COLS; col++) {
+                const currentCell = newCells[row][col];
+                if (
+                    currentCell.value !== CellValue.bomb &&
+                    currentCell.state === CellState.open
+                ) {
+                    safeOpenCells = true;
+                    break;
+                }
+            }
+        }
+
+        if (!safeOpenCells) {
+            newCells = newCells.map((row) =>
+                row.map((cell) => {
+                    if (cell.value === CellValue.bomb) {
+                        return {
+                            ...cell,
+                            state: CellState.flagged
+                        };
+                    }
+                    return cell;
+                })
+            );
+            setHasWon(true);
+        }
+        setCells(newCells);
     };
 
     const handleFaceClick = (): void => {
-        if (live) {
-            setLive(false);
-            setTime(0);
-            setCells(generateCells());
-            setHasLost(false);
-        }
+        setLive(false);
+        setTime(0);
+        setCells(generateCells());
+        setHasLost(false);
+        setHasWon(false);
     };
 
     const handleRightClick = (rowParam: number, colParam: number) => (
@@ -138,6 +187,7 @@ const App: React.FC = () => {
                     col={colIndex}
                     onClick={handleCellClick}
                     onContext={handleRightClick}
+                    red={cell.red}
                 />
             ))
         );
