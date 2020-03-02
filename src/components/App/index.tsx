@@ -12,7 +12,7 @@ const App: React.FC = () => {
     const [time, setTime] = useState<number>(0);
     const [live, setLive] = useState<boolean>();
     const [bombcounter, setBombCounter] = useState<number>(10);
-    // console.log(cells, "cells");
+    const [hasLost, setHasLost] = useState<boolean>(false);
 
     useEffect(() => {
         const handleMouseDown = (): void => {
@@ -43,6 +43,25 @@ const App: React.FC = () => {
         }
     }, [live, time]);
 
+    useEffect(() => {
+        if (hasLost) {
+            setFace(Face.lost);
+            setLive(false);
+        }
+    }, [hasLost]);
+
+    const showAllBombs = (): Cell[][] => {
+        const currentCells = cells.slice();
+        return currentCells.map((row) =>
+            row.map((cell) => {
+                if (cell.value === CellValue.bomb) {
+                    return { ...cell, state: CellState.visible };
+                }
+                return cell;
+            })
+        );
+    };
+
     const handleCellClick = (
         rowParam: number,
         colParam: number
@@ -62,6 +81,10 @@ const App: React.FC = () => {
             return;
         }
         if (currentCell.value === CellValue.bomb) {
+            console.log("💣");
+            newCells = showAllBombs();
+            setCells(newCells);
+            setHasLost(true);
         } else if (currentCell.value === CellValue.none) {
             newCells = openMultipleCells(newCells, rowParam, colParam);
             setCells(newCells);
@@ -76,6 +99,7 @@ const App: React.FC = () => {
             setLive(false);
             setTime(0);
             setCells(generateCells());
+            setHasLost(false);
         }
     };
 
